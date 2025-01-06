@@ -9,11 +9,11 @@ from datetime import datetime, timedelta
 
 def run_autoencoder_influxdb():
     # Define parameters
-    seq_length = 10  # Number of time steps in the sequence
-    hidden_dim = 64  # Hidden dimension for the RNN
-    latent_dim = 32  # Dimension of the latent space
-    batch_size = 32  # Batch size for training
-    num_epochs = 1   # Number of training epochs per loop
+    seq_length = 10 
+    hidden_dim = 64
+    latent_dim = 32
+    batch_size = 32 
+    num_epochs = 1
     learning_rate = 0.001  # Learning rate
     fetch_interval = 10  # Fetch new data every 10 seconds
 
