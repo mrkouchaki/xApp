@@ -14,7 +14,7 @@ def run_autoencoder_influxdb():
     latent_dim = 32
     batch_size = 32 
     num_epochs = 1
-    learning_rate = 0.001  # Learning rate
+    learning_rate = 0.001
     fetch_interval = 10  # Fetch new data every 10 seconds
 
     # Fetch and preprocess data from InfluxDB
