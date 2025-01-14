@@ -97,6 +97,7 @@ def run_autoencoder_influxdb():
         print(data_array[0])
 
         try:
+            print('inside the try -------')
             data_tensor = torch.from_numpy(data_array)
             print(f"Data tensor created with shape: {data_tensor.shape}")
         except Exception as e:
