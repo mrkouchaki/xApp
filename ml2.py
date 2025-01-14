@@ -89,23 +89,26 @@ def run_autoencoder_influxdb():
         num_sequences = len(data_array) // seq_length
         data_array = data_array[:num_sequences * seq_length].reshape(num_sequences, seq_length, n_features)
 
-        if data_array.size == 0:
-            print("No data points available for conversion to tensor.")
-            continue 
+        #--------------------------------------------------
 
-        # Dtype should be 'np.float32'
-        print(f"Data array dtype: {data_array.dtype}")
-        
+        print(f"Reshaped data array shape: {data_array.shape}")
+
+        print("Sample data (first sequence):")
+        print(data_array[0])
+
         try:
-            data_tensor = torch.tensor(data_array, dtype=torch.float32)
+            data_tensor = torch.from_numpy(data_array)
             print(f"Data tensor created with shape: {data_tensor.shape}")
         except Exception as e:
             print(f"Error converting to tensor: {e}")
-        # Convert to PyTorch tensor and DataLoader
-        #data_tensor = torch.tensor(data_array, dtype=torch.float32)
+            continue
+
+        # DataLoader preparation
         labels = torch.zeros(data_tensor.size(0))
         dataset = TensorDataset(data_tensor, labels)
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
+        #------------------------------------
 
         # Train the model
         model.train()
