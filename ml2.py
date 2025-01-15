@@ -118,13 +118,23 @@ def run_autoencoder_influxdb():
         for epoch in range(num_epochs):
             epoch_loss = 0.0
             for batch_data, _ in data_loader:
+                # Print the shape of the batch data to ensure correctness
+                print(f"Batch data shape: {batch_data.shape}")  # Should be [batch_size, seq_length, n_features]
+                
+                if batch_data.shape[-1] != n_features:
+                    raise ValueError(f"Input dimension mismatch! Expected last dimension to be {n_features}, but got {batch_data.shape[-1]}.")
+                
                 optimizer.zero_grad()
                 reconstructed = model(batch_data)
+                
+                # Print the shape of the reconstructed output to ensure it matches the input
+                print(f"Reconstructed data shape: {reconstructed.shape}")  # Should match batch_data.shape
+                
                 loss = criterion(reconstructed, batch_data)
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item()
-            print(f"Training completed for current batch. Loss: {epoch_loss:.4f}")
+            print(f"Training completed for epoch {epoch + 1}. Loss: {epoch_loss:.4f}")
 
         # Evaluate anomaly detection using reconstruction error
         model.eval()
