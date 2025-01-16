@@ -38,7 +38,9 @@ def run_autoencoder_influxdb():
 
         def forward(self, x):
             _, (h, _) = self.encoder_rnn(x)
+            print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")
             latent = self.hidden_to_latent(h[-1])
+            print(f"Shape of latent: {latent.shape}")
             h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
             x_reconstructed, _ = self.decoder_rnn(x, (h_decoded, torch.zeros_like(h_decoded)))
             return x_reconstructed
