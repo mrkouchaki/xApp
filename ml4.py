@@ -34,6 +34,7 @@ def run_autoencoder_influxdb():
             self.encoder_rnn = nn.LSTM(input_dim, hidden_dim, batch_first=True)
             self.hidden_to_latent = nn.Linear(hidden_dim, latent_dim)
             self.latent_to_hidden = nn.Linear(latent_dim, hidden_dim)
+            self.input_to_hidden = nn.Linear(input_dim, hidden_dim) 
             self.decoder_rnn = nn.LSTM(hidden_dim, input_dim, batch_first=True)
 
         def forward(self, x):
@@ -42,7 +43,9 @@ def run_autoencoder_influxdb():
             latent = self.hidden_to_latent(h[-1])
             print(f"Shape of latent: {latent.shape}")
             h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
-            x_reconstructed, _ = self.decoder_rnn(x, (h_decoded, torch.zeros_like(h_decoded)))
+            x_transformed = self.input_to_hidden(x)
+            x_reconstructed, _ = self.decoder_rnn(x_transformed, (h_decoded, torch.zeros_like(h_decoded)))
+            #x_reconstructed, _ = self.decoder_rnn(x, (h_decoded, torch.zeros_like(h_decoded)))
             return x_reconstructed
 
     # Initialize model, loss, and optimizer
