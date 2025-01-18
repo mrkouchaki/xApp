@@ -78,7 +78,7 @@ def run_autoencoder_influxdb():
             seq_len = x.size(1)  # Match the sequence length of the input
             batch_size = x.size(0)
             decoder_input = torch.zeros(batch_size, seq_len, h_decoded.size(-1), device=x.device)  # Shape: (batch_size, seq_len, hidden_dim)
-            
+            print(f"Shape of decoder_input: {decoder_input.shape}")
             # Decode: Reconstruct input from latent space
             x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Pass hidden and cell states
             print(f"Shape of reconstructed output: {x_reconstructed.shape}")
