@@ -53,7 +53,7 @@ class RNN_Autoencoder(nn.Module):
         # Decoder
         h_decoded = self.latent_to_hidden(latent).unsqueeze(0)  # Add layer dimension
         print(f"Shape of decoded hidden state: {h_decoded.shape}")  # Shape: (1, batch_size, input_dim)
-        c_decoded = torch.zeros_like(h_decoded)  # Cell state
+        c_decoded = torch.zeros_like(h_decoded)
         print(f"Shape of decoded cell state: {c_decoded.shape}")  # Shape: (1, batch_size, input_dim)
         
         # Initial decoder input (zeros)
@@ -95,6 +95,13 @@ class RNN_Autoencoder(nn.Module):
         for point in data_list
     ]
     data_array = np.array(data_values, dtype=np.float32)
+
+    # Apply Min-Max Scaling
+    data_min = np.min(data_array, axis=0)
+    data_max = np.max(data_array, axis=0)
+    data_array = (data_array - data_min) / (data_max - data_min + 1e-8)  # Normalize to [0, 1]
+    
+    print(f"Data normalized with Min-Max Scaling. Min: {data_min}, Max: {data_max}")
 
     # Check if enough data is available for a full sequence
     if data_array.size == 0:
