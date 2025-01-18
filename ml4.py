@@ -60,6 +60,30 @@ def run_autoencoder_influxdb():
             print(f"Shape of reconstructed output: {x_reconstructed.shape}")
             
             return x_reconstructed
+            
+        def forward(self, x):
+            _, (h, _) = self.encoder_rnn(x)
+            print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")
+            latent = self.hidden_to_latent(h[-1])
+            print(f"Shape of latent: {latent.shape}")
+            
+            # Decoder
+            h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
+            print(f"Shape of decoded hidden state: {h_decoded.shape}")
+            
+            # Initialize cell state for the decoder
+            c_decoded = torch.zeros_like(h_decoded)  # Ensure cell state matches hidden state dimensions
+            
+            # Provide an initial sequence of zeros as input to the decoder
+            seq_len = x.size(1)  # Match the sequence length of the input
+            batch_size = x.size(0)
+            decoder_input = torch.zeros(batch_size, seq_len, h_decoded.size(-1), device=x.device)  # Shape: (batch_size, seq_len, hidden_dim)
+            
+            # Decode: Reconstruct input from latent space
+            x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Pass hidden and cell states
+            print(f"Shape of reconstructed output: {x_reconstructed.shape}")
+            
+            return x_reconstructed
 
         # def forward(self, x):
         #     _, (h, _) = self.encoder_rnn(x)
