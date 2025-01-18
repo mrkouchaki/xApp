@@ -29,8 +29,6 @@ def run_autoencoder_influxdb():
 
     # RNN Autoencoder model
 
-import torch
-import torch.nn as nn
 
 class RNN_Autoencoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim):
