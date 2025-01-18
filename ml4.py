@@ -29,6 +29,9 @@ def run_autoencoder_influxdb():
 
     # RNN Autoencoder model
 
+import torch
+import torch.nn as nn
+
 class RNN_Autoencoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim):
         super(RNN_Autoencoder, self).__init__()
@@ -41,21 +44,31 @@ class RNN_Autoencoder(nn.Module):
         self.decoder_rnn = nn.LSTM(hidden_dim, input_dim, batch_first=True)  # Decoder LSTM
 
     def forward(self, x):
+        print(f"Input x shape: {x.shape}")  # Shape: (batch_size, seq_len, input_dim)
+        
         # Encoder
         _, (h, _) = self.encoder_rnn(x)
-        latent = self.hidden_to_latent(h[-1])  # h[-1] shape: (batch_size, hidden_dim)
+        print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")  # Shape: (batch_size, hidden_dim)
+        latent = self.hidden_to_latent(h[-1])  # h[-1] → latent space
+        print(f"Shape of latent: {latent.shape}")  # Shape: (batch_size, latent_dim)
         
         # Decoder
-        h_decoded = self.latent_to_hidden(latent).unsqueeze(0)  # Shape: (1, batch_size, input_dim)
-        c_decoded = torch.zeros_like(h_decoded)  # Shape: (1, batch_size, input_dim)
+        h_decoded = self.latent_to_hidden(latent).unsqueeze(0)  # Add layer dimension
+        print(f"Shape of decoded hidden state: {h_decoded.shape}")  # Shape: (1, batch_size, input_dim)
+        c_decoded = torch.zeros_like(h_decoded)  # Cell state
+        print(f"Shape of decoded cell state: {c_decoded.shape}")  # Shape: (1, batch_size, input_dim)
         
         # Initial decoder input (zeros)
         batch_size, seq_len, _ = x.shape
         decoder_input = torch.zeros(batch_size, seq_len, hidden_dim, device=x.device)  # Shape: (batch_size, seq_len, hidden_dim)
+        print(f"Shape of decoder_input: {decoder_input.shape}")  # Shape: (batch_size, seq_len, hidden_dim)
         
         # Decode
-        x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Decode using hidden and cell states
+        x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Decode
+        print(f"Shape of reconstructed output: {x_reconstructed.shape}")  # Shape: (batch_size, seq_len, input_dim)
+        
         return x_reconstructed
+
 
 
         # def forward(self, x):
