@@ -40,16 +40,40 @@ def run_autoencoder_influxdb():
         def forward(self, x):
             _, (h, _) = self.encoder_rnn(x)
             print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")
-            latent = self.hidden_to_latent(h[-1])
+            
+            # Latent: Map hidden state to latent space
+            latent = self.hidden_to_latent(h[-1])  # h[-1] has shape (batch_size, hidden_dim)
             print(f"Shape of latent: {latent.shape}")
-            h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
+            
+            h_decoded = self.latent_to_hidden(latent).unsqueeze(0)  # Add the layer dimension: (1, batch_size, hidden_dim)
             print(f"Shape of decoded hidden state: {h_decoded.shape}")
-            x_transformed = self.input_to_hidden(x)
+            
+            # Initialize cell state for the decoder
+            c_decoded = torch.zeros_like(h_decoded)  # Ensure cell state matches hidden state dimensions
+        
+            # Preprocess input for decoder
+            x_transformed = self.input_to_hidden(x)  # Transform input: (batch_size, seq_len, hidden_dim)
             print(f"Shape of transformed input: {x_transformed.shape}")
-            x_reconstructed, _ = self.decoder_rnn(x_transformed, (h_decoded, torch.zeros_like(h_decoded)))
+            
+            # Decode: Reconstruct input from latent space
+            x_reconstructed, _ = self.decoder_rnn(x_transformed, (h_decoded, c_decoded))  # Pass hidden and cell states
             print(f"Shape of reconstructed output: {x_reconstructed.shape}")
-            #x_reconstructed, _ = self.decoder_rnn(x, (h_decoded, torch.zeros_like(h_decoded)))
+            
             return x_reconstructed
+
+        # def forward(self, x):
+        #     _, (h, _) = self.encoder_rnn(x)
+        #     print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")
+        #     latent = self.hidden_to_latent(h[-1])
+        #     print(f"Shape of latent: {latent.shape}")
+        #     h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
+        #     print(f"Shape of decoded hidden state: {h_decoded.shape}")
+        #     x_transformed = self.input_to_hidden(x)
+        #     print(f"Shape of transformed input: {x_transformed.shape}")
+        #     x_reconstructed, _ = self.decoder_rnn(x_transformed, (h_decoded, torch.zeros_like(h_decoded)))
+        #     print(f"Shape of reconstructed output: {x_reconstructed.shape}")
+        #     #x_reconstructed, _ = self.decoder_rnn(x, (h_decoded, torch.zeros_like(h_decoded)))
+        #     return x_reconstructed
 
     # Initialize model, loss, and optimizer
     n_features = 3  # Adjust based on the number of features (e.g., tx_pkts, tx_error, cqi)
