@@ -28,38 +28,35 @@ def run_autoencoder_influxdb():
     end_time = current_time + extra_training_duration  # 30 minutes after current time
 
     # RNN Autoencoder model
-    class RNN_Autoencoder(nn.Module):
-        def __init__(self, input_dim, hidden_dim, latent_dim):
-            super(RNN_Autoencoder, self).__init__()
-            self.encoder_rnn = nn.LSTM(input_dim, hidden_dim, batch_first=True)
-            self.hidden_to_latent = nn.Linear(hidden_dim, latent_dim)
-            self.latent_to_hidden = nn.Linear(latent_dim, hidden_dim)
-            self.input_to_hidden = nn.Linear(input_dim, hidden_dim) 
-            self.decoder_rnn = nn.LSTM(hidden_dim, input_dim, batch_first=True)
-            
-        def forward(self, x):
-            _, (h, _) = self.encoder_rnn(x)
-            print(f"Shape of encoder hidden state h[-1]: {h[-1].shape}")
-            latent = self.hidden_to_latent(h[-1])
-            print(f"Shape of latent: {latent.shape}")
-            
-            # Decoder
-            h_decoded = self.latent_to_hidden(latent).unsqueeze(0)
-            print(f"Shape of decoded hidden state: {h_decoded.shape}")
-            
-            # Initialize cell state for the decoder
-            c_decoded = torch.zeros_like(h_decoded)  # Ensure cell state matches hidden state dimensions
-            
-            # Provide an initial sequence of zeros as input to the decoder
-            seq_len = x.size(1)  # Match the sequence length of the input
-            batch_size = x.size(0)
-            decoder_input = torch.zeros(batch_size, seq_len, h_decoded.size(-1), device=x.device)  # Shape: (batch_size, seq_len, hidden_dim)
-            print(f"Shape of decoder_input: {decoder_input.shape}")
-            # Decode: Reconstruct input from latent space
-            x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Pass hidden and cell states
-            print(f"Shape of reconstructed output: {x_reconstructed.shape}")
-            
-            return x_reconstructed
+
+class RNN_Autoencoder(nn.Module):
+    def __init__(self, input_dim, hidden_dim, latent_dim):
+        super(RNN_Autoencoder, self).__init__()
+        # Encoder
+        self.encoder_rnn = nn.LSTM(input_dim, hidden_dim, batch_first=True)
+        self.hidden_to_latent = nn.Linear(hidden_dim, latent_dim)
+        
+        # Decoder
+        self.latent_to_hidden = nn.Linear(latent_dim, input_dim)  # Map latent to input_dim for hidden state
+        self.decoder_rnn = nn.LSTM(hidden_dim, input_dim, batch_first=True)  # Decoder LSTM
+
+    def forward(self, x):
+        # Encoder
+        _, (h, _) = self.encoder_rnn(x)
+        latent = self.hidden_to_latent(h[-1])  # h[-1] shape: (batch_size, hidden_dim)
+        
+        # Decoder
+        h_decoded = self.latent_to_hidden(latent).unsqueeze(0)  # Shape: (1, batch_size, input_dim)
+        c_decoded = torch.zeros_like(h_decoded)  # Shape: (1, batch_size, input_dim)
+        
+        # Initial decoder input (zeros)
+        batch_size, seq_len, _ = x.shape
+        decoder_input = torch.zeros(batch_size, seq_len, hidden_dim, device=x.device)  # Shape: (batch_size, seq_len, hidden_dim)
+        
+        # Decode
+        x_reconstructed, _ = self.decoder_rnn(decoder_input, (h_decoded, c_decoded))  # Decode using hidden and cell states
+        return x_reconstructed
+
 
         # def forward(self, x):
         #     _, (h, _) = self.encoder_rnn(x)
